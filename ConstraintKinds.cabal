@@ -1,0 +1,24 @@
+Name:                ConstraintKinds
+Version:             0.0.1
+Description:         This module provides more flexible versions of common type classes that use the ConstraintKinds extension.  This allows us to make type classes that require constraints instances of these classes.  For example, it will allow us to manipulate lists and unboxed vectors using the same functions.
+Category:            Control
+License:             BSD3
+Author:              Mike izbicki
+Maintainer:          mike@izbicki.me
+Build-Type:          Simple
+Cabal-Version:       >=1.8
+
+Library
+    Build-Depends:      
+        base                    >= 3 && < 5,
+        ghc-prim,
+        vector                  >= 0.9
+        
+    hs-source-dirs:     src
+    ghc-options:        -rtsopts -auto-all -caf-all -O2 
+    Exposed-modules:
+        Control.ConstraintKinds
+        Control.ConstraintKinds.Foldable
+        Control.ConstraintKinds.Functor
+        -- Control.ConstraintKinds.Monad
+        Control.ConstraintKinds.Traversable
