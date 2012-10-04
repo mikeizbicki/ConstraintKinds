@@ -25,13 +25,13 @@ import Control.ConstraintKinds.Functor
 -- class Monad
 
 class Monad m where
-    type MonadConstraint t x :: Constraint
-    type MonadConstraint t x = ()
+    type MonadConstraint m x :: Constraint
+    type MonadConstraint m x = ()
 
-    (>>=)       :: {-forall a b. -}m a -> (a -> m b) -> m b
-    (>>)        :: {-forall a b. -}m a -> m b -> m b
-    return      :: a -> m a
-    fail        :: String -> m a
+    (>>=)       :: {-forall a b. -}(MonadConstraint m a, MonadConstraint m b) => m a -> (a -> m b) -> m b
+    (>>)        :: {-forall a b. -}(MonadConstraint m a, MonadConstraint m b) => m a -> m b -> m b
+    return      :: MonadConstraint m a => a -> m a
+    fail        :: MonadConstraint m a => String -> m a
 
     {-# INLINE (>>) #-}
     m >> k      = m >>= \_ -> k
