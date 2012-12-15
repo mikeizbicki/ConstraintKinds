@@ -17,8 +17,9 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Generic as VG
 
+-- import Control.ConstraintKinds.Applicative
 import Control.ConstraintKinds.Foldable
-import Control.ConstraintKinds.Functor
+import Control.ConstraintKinds.Functor hiding ((<$>))
 
 -------------------------------------------------------------------------------
 -- class Traversable
@@ -35,11 +36,11 @@ class (Functor t, Foldable t) => Traversable t where
         => t (f a) -> f (t a)
     sequenceA = traverse id
 
-    mapM :: (TraversableConstraint t a, TraversableConstraint t b, FunctorConstraint t a, FunctorConstraint t (WrappedMonad m b), Monad m) 
+    mapM :: (TraversableConstraint t a, TraversableConstraint t b, FunctorConstraint t a{-, FunctorConstraint t (WrappedMonad m b)-}, Monad m) 
         => (a -> m b) -> t a -> m (t b)
 --     mapM f = unwrapMonad . traverse (WrapMonad . f)
 
-    sequence :: (TraversableConstraint t a, TraversableConstraint t b, TraversableConstraint t (m a), FunctorConstraint t (WrappedMonad m a), FunctorConstraint t (m a), Monad m) 
+    sequence :: (TraversableConstraint t a, TraversableConstraint t b, TraversableConstraint t (m a){-, FunctorConstraint t (WrappedMonad m a)-}, FunctorConstraint t (m a), Monad m) 
         => t (m a) -> m (t a)
     sequence = mapM id
     
@@ -47,6 +48,7 @@ class (Functor t, Foldable t) => Traversable t where
 -- instances
 
 instance Traversable [] where
+    type TraversableConstraint [] x = ()
     {-# INLINE traverse #-} -- so that traverse can fuse
     traverse f = Prelude.foldr cons_f (pure [])
       where cons_f x ys = (:) <$> f x <*> ys

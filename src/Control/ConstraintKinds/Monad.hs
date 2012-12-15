@@ -7,8 +7,8 @@ module Control.ConstraintKinds.Monad
 
 import GHC.Prim
 import Control.Applicative
-import Control.Monad as Monad
-import Prelude hiding (Monad, (>>=), (>>))
+import qualified Control.Monad as Monad
+import Prelude hiding (Monad, (>>=), (>>), return)
 import qualified Prelude as Prelude
 
 import qualified Data.Foldable as F
@@ -25,13 +25,13 @@ import Control.ConstraintKinds.Functor
 -- class Monad
 
 class Monad m where
-    type MonadConstraint t x :: Constraint
-    type MonadConstraint t x = ()
+    type MonadConstraint m x :: Constraint
+    type MonadConstraint m x = ()
 
-    (>>=)       :: {-forall a b. -}m a -> (a -> m b) -> m b
-    (>>)        :: {-forall a b. -}m a -> m b -> m b
-    return      :: a -> m a
-    fail        :: String -> m a
+    (>>=)       :: (MonadConstraint m a, MonadConstraint m b) => m a -> (a -> m b) -> m b
+    (>>)        :: (MonadConstraint m a, MonadConstraint m b) => {-forall a b. -}m a -> m b -> m b
+    return      :: (MonadConstraint m a) => a -> m a
+    fail        :: (MonadConstraint m a) => String -> m a
 
     {-# INLINE (>>) #-}
     m >> k      = m >>= \_ -> k
@@ -41,11 +41,27 @@ class Monad m where
 -- instances
 
 instance Control.ConstraintKinds.Monad.Monad [] where
-    (>>=)       = Monad.(>>=)
-    (>>=)       = Monad.(>>)
+    (>>=)       = (Monad.>>=)
+    (>>)        = (Monad.>>)
     return      = Monad.return
     fail        = Monad.fail
 --     m >>= k             = foldr ((++) . k) [] m
 --     m >> k              = foldr ((++) . (\ _ -> k)) [] m
 --     return x            = [x]
 --     fail _              = []
+
+instance Monad V.Vector where
+    {-# INLINE return #-}
+    return = V.singleton
+
+    {-# INLINE (>>=) #-}
+    (>>=) = flip V.concatMap
+  
+instance Monad VU.Vector where
+    type MonadConstraint VU.Vector x = VU.Unbox x
+
+    {-# INLINE return #-}
+    return = VU.singleton
+
+    {-# INLINE (>>=) #-}
+    (>>=) = flip VU.concatMap

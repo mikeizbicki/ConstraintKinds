@@ -20,13 +20,18 @@ import qualified Prelude as P
 class Functor f where
     type FunctorConstraint f x :: Constraint
     type FunctorConstraint f x = ()
-
+    
     fmap :: (FunctorConstraint f a, FunctorConstraint f b) => (a -> b) -> f a -> f b
+
+-- | An infix synonym for 'fmap'.
+(<$>) :: (Functor f, FunctorConstraint f a, FunctorConstraint f b) => (a -> b) -> f a -> f b
+(<$>) = fmap
 
 -------------------------------------------------------------------------------
 -- Instances
 
 instance Functor [] where
+    type FunctorConstraint [] x = ()
     {-# INLINE fmap #-}
     fmap = P.map
 

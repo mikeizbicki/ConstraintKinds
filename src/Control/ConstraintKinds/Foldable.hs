@@ -29,8 +29,8 @@ class Foldable t where
     foldr :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> b) -> b -> t a -> b
     foldl :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
     foldl' :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
-    foldr1 :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> a -> a) -> t a -> a
-    foldl1 :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> a -> a) -> t a -> a
+    foldr1 :: (FoldableConstraint t a) => (a -> a -> a) -> t a -> a
+    foldl1 :: (FoldableConstraint t a) => (a -> a -> a) -> t a -> a
 
     -- These functions get default implementations because they aren't provided for some structures
     fold :: (FoldableConstraint t m, Monoid m) => t m -> m
@@ -44,9 +44,17 @@ class Foldable t where
         where f' k x z = k $! f x z
 
 -------------------------------------------------------------------------------
+-- functions
+
+{-# INLINE toList #-}
+toList :: (Foldable t, FoldableConstraint t [a], FoldableConstraint t a) => t a -> [a]
+toList = foldr (:) []
+
+-------------------------------------------------------------------------------
 -- Instances
 
 instance Foldable [] where
+    type FoldableConstraint [] x = ()
     {-# INLINE foldr #-}
     {-# INLINE foldl #-}
     {-# INLINE foldl' #-}
@@ -64,6 +72,7 @@ instance Foldable [] where
 --     foldr' = L.foldr'
 
 instance Foldable V.Vector where
+    type FoldableConstraint V.Vector x = ()
     {-# INLINE foldr #-}
     {-# INLINE foldl #-}
     {-# INLINE foldl' #-}
