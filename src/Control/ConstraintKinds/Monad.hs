@@ -1,12 +1,11 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
--- {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Control.ConstraintKinds.Monad
     where
 
 import GHC.Prim
-import Control.Applicative
 import qualified Control.Monad as Monad
 import Prelude hiding (Monad, (>>=), (>>), return)
 import qualified Prelude as Prelude
@@ -20,22 +19,19 @@ import qualified Data.Vector.Generic as VG
 
 import Control.ConstraintKinds.Foldable
 import Control.ConstraintKinds.Functor
+import Control.ConstraintKinds.Pointed
+import Control.ConstraintKinds.Applicative
 
 -------------------------------------------------------------------------------
 -- class Monad
 
-class Monad m where
+class (Applicative m) => Monad m where
     type MonadConstraint m x :: Constraint
-    type MonadConstraint m x = ()
+    type MonadConstraint m x = ApplicativeConstraint m x
 
     (>>=)       :: (MonadConstraint m a, MonadConstraint m b) => m a -> (a -> m b) -> m b
-    (>>)        :: (MonadConstraint m a, MonadConstraint m b) => {-forall a b. -}m a -> m b -> m b
-    return      :: (MonadConstraint m a) => a -> m a
-    fail        :: (MonadConstraint m a) => String -> m a
-
-    {-# INLINE (>>) #-}
+    (>>)        :: (MonadConstraint m a, MonadConstraint m b) => m a ->       m b  -> m b
     m >> k      = m >>= \_ -> k
-    fail s      = error s
     
 -------------------------------------------------------------------------------
 -- instances
@@ -43,25 +39,11 @@ class Monad m where
 instance Control.ConstraintKinds.Monad.Monad [] where
     (>>=)       = (Monad.>>=)
     (>>)        = (Monad.>>)
-    return      = Monad.return
-    fail        = Monad.fail
---     m >>= k             = foldr ((++) . k) [] m
---     m >> k              = foldr ((++) . (\ _ -> k)) [] m
---     return x            = [x]
---     fail _              = []
 
 instance Monad V.Vector where
-    {-# INLINE return #-}
-    return = V.singleton
-
     {-# INLINE (>>=) #-}
     (>>=) = flip V.concatMap
   
-instance Monad VU.Vector where
-    type MonadConstraint VU.Vector x = VU.Unbox x
-
-    {-# INLINE return #-}
-    return = VU.singleton
-
-    {-# INLINE (>>=) #-}
-    (>>=) = flip VU.concatMap
+-- instance Monad VU.Vector where
+--     {-# INLINE (>>=) #-}
+--     (>>=) = flip VU.concatMap

@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Control.ConstraintKinds.Applicative
     where
@@ -15,16 +16,15 @@ import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Generic as G
 
 import Control.ConstraintKinds.Functor
+import Control.ConstraintKinds.Pointed
 import Prelude hiding (Functor, fmap, foldl, foldr)
 
 -------------------------------------------------------------------------------
 -- class Applicative
 
-class Functor f => Applicative f where
+class Pointed f => Applicative f where
     type ApplicativeConstraint f x :: Constraint
-    type ApplicativeConstraint f x = ()
-
-    pure :: (ApplicativeConstraint f a) => a -> f a
+    type ApplicativeConstraint f x = PointedConstraint f x
 
     (<*>) :: (ApplicativeConstraint f a, ApplicativeConstraint f b) => f (a -> b) -> f a -> f b
 
@@ -37,7 +37,7 @@ class Functor f => Applicative f where
 -- | Lift a function to actions.
 -- This function may be used as a value for `fmap` in a `Functor` instance.
 -- liftA :: (ApplicativeConstraint f a, ApplicativeConstraint f (a -> b), ApplicativeConstraint f b, Applicative f) => (a -> b) -> f a -> f b
-liftA f a = pure f <*> a
+liftA f a = point f <*> a
 
 -- | Lift a binary function to actions.
 -- liftA2 :: (FunctorConstraint f a, FunctorConstraint f (b -> c), Applicative f) => (a -> b -> c) -> f a -> f b -> f c
@@ -51,21 +51,12 @@ liftA3 f a b c = f <$> a <*> b <*> c
 -- Instances
 
 instance Applicative [] where
-    pure = M.return
     (<*>) = M.ap
     
 instance Applicative V.Vector where
-    {-# INLINE pure #-}
-    pure = V.singleton
-
     {-# INLINE (<*>) #-}
     (<*>) = M.ap
   
-instance Applicative VU.Vector where
-    type ApplicativeConstraint VU.Vector x = VU.Unbox x
-
-    {-# INLINE pure #-}
-    pure = VU.singleton
-
-    {-# INLINE (<*>) #-}
-    (<*>) = undefined -- M.ap
+-- instance Applicative VU.Vector where
+--     {-# INLINE (<*>) #-}
+--     (<*>) = undefined -- M.ap

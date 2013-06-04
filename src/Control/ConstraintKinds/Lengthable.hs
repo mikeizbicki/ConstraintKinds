@@ -1,18 +1,11 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Control.ConstraintKinds.Foldable
+module Control.ConstraintKinds.Lengthable
     where
 
 import GHC.Prim
 
-import Data.Maybe
-import Data.Monoid
-
-import qualified Data.DList as D
-import qualified Data.Foldable as F
-import qualified Data.List as L
-import qualified Data.Traversable as T
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Generic as G
@@ -23,10 +16,11 @@ import qualified Prelude as P
 -------------------------------------------------------------------------------
 -- Foldable
 
-class Foldable t where
-    type FoldableConstraint t x :: Constraint
-    type FoldableConstraint t x = ()
+class Lengthable t where
+    type LengthableConstraint t x :: Constraint
+    type LengthableConstraint t x = ()
     
+    length :: t -> Int
     -- I was too lazy to work out the new default instances for these because all the important structures already provide the instances.  Also, it adds additional constraints into the functions that look ugly, and I'm not sure if it affects the functionality.
     foldr :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> b) -> b -> t a -> b
     foldl :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
@@ -100,12 +94,3 @@ instance Foldable VU.Vector where
     foldl' = VU.foldl'
     foldr1 = VU.foldr1
     foldl1 = VU.foldl1
-
-
-instance Foldable D.DList where
-    type FoldableConstraint D.DList x = ()
-    foldr = D.foldr
-    foldl f a = {-Data.DList.-}F.foldl f a . D.toList
-    foldl' f a = {-Data.DList.-}F.foldl' f a . D.toList
-    foldr1 f = {-Data.DList.-}F.foldr1 f . D.toList
-    foldl1 f = {-Data.DList.-}F.foldl1 f . D.toList
