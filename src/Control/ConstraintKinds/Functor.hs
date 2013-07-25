@@ -31,7 +31,6 @@ class Functor f where
 -- Instances
 
 instance Functor [] where
-    type FunctorConstraint [] x = ()
     {-# INLINE fmap #-}
     fmap = P.map
 
