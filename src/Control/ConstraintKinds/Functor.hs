@@ -5,6 +5,7 @@ module Control.ConstraintKinds.Functor
     where
 
 import GHC.Prim
+import Text.ParserCombinators.ReadPrec
 
 import qualified Data.Foldable as F
 import qualified Data.List as L
@@ -33,6 +34,10 @@ class Functor f where
 instance Functor [] where
     {-# INLINE fmap #-}
     fmap = P.map
+
+instance Functor ReadPrec where
+    {-# INLINE fmap #-}
+    fmap = P.fmap
 
 instance Functor V.Vector where
     {-# INLINE fmap #-}

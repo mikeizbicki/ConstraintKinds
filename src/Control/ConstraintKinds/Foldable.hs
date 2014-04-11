@@ -28,9 +28,10 @@ class Foldable t where
     type FoldableConstraint t x = ()
     
     -- I was too lazy to work out the new default instances for these because all the important structures already provide the instances.  Also, it adds additional constraints into the functions that look ugly, and I'm not sure if it affects the functionality.
-    foldr :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> b) -> b -> t a -> b
-    foldl :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
-    foldl' :: (FoldableConstraint t a, FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
+    foldr  :: (FoldableConstraint t a) => (a -> b -> b) -> b -> t a -> b
+    foldr' :: (FoldableConstraint t a) => (a -> b -> b) -> b -> t a -> b
+    foldl  :: (FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
+    foldl' :: (FoldableConstraint t b) => (a -> b -> a) -> a -> t b -> a
     foldr1 :: (FoldableConstraint t a) => (a -> a -> a) -> t a -> a
     foldl1 :: (FoldableConstraint t a) => (a -> a -> a) -> t a -> a
 
@@ -41,9 +42,6 @@ class Foldable t where
     foldMap :: (FoldableConstraint t a, FoldableConstraint t m, Monoid m) => (a -> m) -> t a -> m
     foldMap f = foldr (mappend . f) mempty
     
-    foldr' :: (FoldableConstraint t a, FoldableConstraint t (b->b), FoldableConstraint t b) => (a -> b -> b) -> b -> t a -> b
-    foldr' f z0 xs = foldl f' id xs z0
-        where f' k x z = k $! f x z
 
 -------------------------------------------------------------------------------
 -- functions
@@ -58,13 +56,15 @@ toList = foldr (:) []
 instance Foldable [] where
     type FoldableConstraint [] x = ()
     {-# INLINE foldr #-}
+    {-# INLINE foldr' #-}
     {-# INLINE foldl #-}
     {-# INLINE foldl' #-}
     {-# INLINE foldr1 #-}
     {-# INLINE foldl1 #-}
     
-    foldr = L.foldr
-    foldl = L.foldl
+    foldr  = L.foldr
+    foldr' = L.foldr
+    foldl  = L.foldl
     foldl' = L.foldl'
     foldr1 = L.foldr1
     foldl1 = L.foldl1
@@ -76,12 +76,14 @@ instance Foldable [] where
 instance Foldable V.Vector where
     type FoldableConstraint V.Vector x = ()
     {-# INLINE foldr #-}
+    {-# INLINE foldr' #-}
     {-# INLINE foldl #-}
     {-# INLINE foldl' #-}
     {-# INLINE foldr1 #-}
     {-# INLINE foldl1 #-}
     
     foldr = V.foldr
+    foldr' = V.foldr'
     foldl = V.foldl
     foldl' = V.foldl'
     foldr1 = V.foldr1
@@ -90,12 +92,14 @@ instance Foldable V.Vector where
 instance Foldable VU.Vector where
     type FoldableConstraint VU.Vector x = VU.Unbox x
     {-# INLINE foldr #-}
+    {-# INLINE foldr' #-}
     {-# INLINE foldl #-}
     {-# INLINE foldl' #-}
     {-# INLINE foldr1 #-}
     {-# INLINE foldl1 #-}
     
     foldr = VU.foldr
+    foldr' = VU.foldr'
     foldl = VU.foldl
     foldl' = VU.foldl'
     foldr1 = VU.foldr1

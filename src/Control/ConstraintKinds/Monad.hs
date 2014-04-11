@@ -9,6 +9,7 @@ import GHC.Prim
 import qualified Control.Monad as Monad
 import Prelude hiding (Functor, fmap, Monad, (>>=), (>>), return)
 import qualified Prelude as Prelude
+import Text.ParserCombinators.ReadPrec
 
 import qualified Data.Foldable as F
 import qualified Data.List as L
@@ -21,10 +22,17 @@ import Control.ConstraintKinds.Functor
 import Control.ConstraintKinds.Pointed
 import Control.ConstraintKinds.Applicative
 
+ifThenElse :: Bool -> a -> a -> a
+ifThenElse True  x _ = x
+ifThenElse False _ y = y
+
 -------------------------------------------------------------------------------
 -- class Monad
 
 class (Functor m) => Monad m where
+
+    fail :: String -> m a
+    fail = error
 
     return :: 
         ( FunctorConstraint m a
@@ -54,6 +62,11 @@ class (Functor m) => Monad m where
 -- instances
 
 instance Control.ConstraintKinds.Monad.Monad [] where
+    return = Monad.return
+    (>>=)  = (Monad.>>=)
+    (>>)   = (Monad.>>)
+
+instance Monad ReadPrec where
     return = Monad.return
     (>>=)  = (Monad.>>=)
     (>>)   = (Monad.>>)

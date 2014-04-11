@@ -39,7 +39,7 @@ instance Partitionable V.Vector where
                     len = if i+lenmax >= V.length vec
                         then (V.length vec)-i
                         else lenmax
-                    lenmax = ceiling $ (fromIntegral $ V.length vec) / (fromIntegral n)
+                    lenmax = ceiling $ (fromIntegral $ V.length vec) / (fromIntegral n :: Rational)
 
 instance Partitionable VU.Vector where
     type PartitionableConstraint VU.Vector x = VU.Unbox x
