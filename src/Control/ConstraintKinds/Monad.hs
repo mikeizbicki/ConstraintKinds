@@ -29,52 +29,57 @@ ifThenElse False _ y = y
 -------------------------------------------------------------------------------
 -- class Monad
 
-class (Functor m) => Monad m where
+class (Applicative m) => Monad m where
 
     fail :: String -> m a
     fail = error
 
-    return :: 
-        ( FunctorConstraint m a
-        ) => a -> m a
+    type ConstraintJoin m a :: Constraint
+    type ConstraintJoin m a = ()
 
     join :: 
-        ( FunctorConstraint m a
-        , FunctorConstraint m (m a)
+        ( ConstraintJoin m a
         ) => m (m a) -> m a
-    join m = m >>= id
 
-    (>>=) :: 
-        ( FunctorConstraint m a
-        , FunctorConstraint m b
-        , FunctorConstraint m (m b)
-        ) => m a -> (a -> m b) -> m b
-    a >>= b = join $ fmap b a
+    (>>=) :: m a -> (a -> m b) -> m b
+    a >>= b = join
 
-    (>>) :: 
-        ( FunctorConstraint m a
-        , FunctorConstraint m b
-        , FunctorConstraint m (m b)
-        ) => m a -> m b -> m b
-    m >> k = m >>= \_ -> k
+--     join m = m >>= id
+
+--     (>>=) :: 
+--         ( FunctorConstraint m a
+--         , FunctorConstraint m b
+--         , FunctorConstraint m (m b)
+--         ) => m a -> (a -> m b) -> m b
+--     a >>= b = join $ fmap b a
+-- 
+--     (>>) :: 
+--         ( FunctorConstraint m a
+--         , FunctorConstraint m b
+--         , FunctorConstraint m (m b)
+--         ) => m a -> m b -> m b
+--     m >> k = m >>= \_ -> k
     
+return :: (Monad m, ConstraintPure m a) => a -> m a
+return = pure
+
 -------------------------------------------------------------------------------
 -- instances
 
-instance Control.ConstraintKinds.Monad.Monad [] where
-    return = Monad.return
-    (>>=)  = (Monad.>>=)
-    (>>)   = (Monad.>>)
-
-instance Monad ReadPrec where
-    return = Monad.return
-    (>>=)  = (Monad.>>=)
-    (>>)   = (Monad.>>)
-
-instance Monad V.Vector where
-    return = Monad.return
-    (>>=) = flip V.concatMap
-  
-instance Monad VU.Vector where
-    return = VU.singleton
-    (>>=) = flip VU.concatMap
+-- instance Control.ConstraintKinds.Monad.Monad [] where
+--     return = Monad.return
+--     (>>=)  = (Monad.>>=)
+--     (>>)   = (Monad.>>)
+-- 
+-- instance Monad ReadPrec where
+--     return = Monad.return
+--     (>>=)  = (Monad.>>=)
+--     (>>)   = (Monad.>>)
+-- 
+-- instance Monad V.Vector where
+--     return = Monad.return
+--     (>>=) = flip V.concatMap
+--   
+-- instance Monad VU.Vector where
+--     return = VU.singleton
+--     (>>=) = flip VU.concatMap

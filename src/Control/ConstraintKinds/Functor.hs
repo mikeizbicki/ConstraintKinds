@@ -19,31 +19,42 @@ import qualified Prelude as P
 -- class Functor
 
 class Functor f where
-    type FunctorConstraint f x :: Constraint
-    type FunctorConstraint f x = ()
+    type ConstraintMapDomain f x :: Constraint
+    type ConstraintMapDomain f x = ()
     
-    fmap :: (FunctorConstraint f a, FunctorConstraint f b) => (a -> b) -> f a -> f b
+    type ConstraintMapRange f x :: Constraint
+    type ConstraintMapRange f x = ()
+
+    fmap :: 
+        ( ConstraintMapDomain f a
+        , ConstraintMapRange f b
+        ) => (a -> b) -> f a -> f b
 
 -- | An infix synonym for 'fmap'.
-(<$>) :: (Functor f, FunctorConstraint f a, FunctorConstraint f b) => (a -> b) -> f a -> f b
+(<$>) :: 
+    ( Functor f
+    , ConstraintMapDomain f a
+    , ConstraintMapRange f b
+    ) => (a -> b) -> f a -> f b
 (<$>) = fmap
 
 -------------------------------------------------------------------------------
 -- Instances
 
-instance Functor [] where
-    {-# INLINE fmap #-}
-    fmap = P.map
-
-instance Functor ReadPrec where
-    {-# INLINE fmap #-}
-    fmap = P.fmap
-
-instance Functor V.Vector where
-    {-# INLINE fmap #-}
-    fmap = V.map
-
-instance Functor VU.Vector where
-    type FunctorConstraint VU.Vector x = VU.Unbox x
-    {-# INLINE fmap #-}
-    fmap = VU.map
+-- instance Functor [] where
+--     {-# INLINE fmap #-}
+--     fmap = P.map
+-- 
+-- instance Functor ReadPrec where
+--     {-# INLINE fmap #-}
+--     fmap = P.fmap
+-- 
+-- instance Functor V.Vector where
+--     {-# INLINE fmap #-}
+--     fmap = V.map
+-- 
+-- instance Functor VU.Vector where
+--     type ConstraintMapDomain VU.Vector x = VU.Unbox x
+--     type ConstraintMapRange VU.Vector x = VU.Unbox x
+--     {-# INLINE fmap #-}
+--     fmap = VU.map

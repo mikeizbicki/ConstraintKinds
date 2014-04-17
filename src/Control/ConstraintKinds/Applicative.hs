@@ -16,44 +16,84 @@ import qualified Data.Vector.Unboxed as VU
 import qualified Data.Vector.Generic as G
 
 import Control.ConstraintKinds.Functor
-import Control.ConstraintKinds.Pointed
 import Prelude hiding (Functor, fmap, foldl, foldr)
 
 -------------------------------------------------------------------------------
 -- class Applicative
 
-class Pointed f => Applicative f where
-    type ApplicativeConstraint f x :: Constraint
-    type ApplicativeConstraint f x = PointedConstraint f x
+class Functor f => Applicative f where
 
-    (<*>) :: (ApplicativeConstraint f a, ApplicativeConstraint f b) => f (a -> b) -> f a -> f b
+    type ConstraintPure f a :: Constraint
+    type ConstraintPure f a = ()
 
---     (*>) :: (FunctorConstraint f a, FunctorConstraint f (b -> c)) => f a -> f b -> f b
---     (*>) = liftA2 (const id)
--- 
---     (<*) :: f a -> f b -> f a
---     (<*) = liftA2 const
+    pure :: 
+        ( ConstraintPure f a
+        ) => a -> f a
+
+    type ConstraintApplyDomain f x :: Constraint
+    type ConstraintApplyDomain f x = () 
+
+    type ConstraintApplyRange f x :: Constraint
+    type ConstraintApplyRange f x = () 
+
+    (<*>) :: 
+        ( ConstraintApplyDomain f a
+        , ConstraintApplyRange f b
+        ) => f (a -> b) -> f a -> f b
+
+    (*>) :: 
+        ( ConstraintApplyDomain f b
+        , ConstraintApplyRange f b
+        , ConstraintMapDomain f a
+        , ConstraintMapRange f (b -> b)
+        , Applicative f
+        ) => f a -> f b -> f b
+    (*>) = liftA2 (const id)
+
+    (<*) :: 
+        ( ConstraintApplyDomain f b
+        , ConstraintApplyRange f a
+        , ConstraintMapDomain f a
+        , ConstraintMapRange f (b -> a)
+        , Applicative f
+        ) => f a -> f b -> f a
+    (<*) = liftA2 const
 
 -- | Lift a function to actions.
 -- This function may be used as a value for `fmap` in a `Functor` instance.
--- liftA :: (ApplicativeConstraint f a, ApplicativeConstraint f (a -> b), ApplicativeConstraint f b, Applicative f) => (a -> b) -> f a -> f b
-liftA f a = point f <*> a
+liftA :: 
+    ( ConstraintApplyDomain f a
+    , ConstraintPure f (a -> b)
+    , ConstraintApplyRange f b
+    , Applicative f
+    ) => (a -> b) -> f a -> f b
+liftA f a = pure f <*> a
 
 -- | Lift a binary function to actions.
--- liftA2 :: (FunctorConstraint f a, FunctorConstraint f (b -> c), Applicative f) => (a -> b -> c) -> f a -> f b -> f c
+liftA2 ::
+    ( ConstraintApplyDomain f b
+    , ConstraintApplyRange f c
+    , ConstraintMapDomain f a
+    , ConstraintMapRange f (b -> c)
+    , Applicative f
+    ) => (a -> b -> c) -> f a -> f b -> f c 
 liftA2 f a b = f <$> a <*> b
-
--- | Lift a ternary function to actions.
--- liftA3 :: (FunctorConstraint f a, FunctorConstraint f (b -> c -> d), Applicative f)=> (a -> b -> c -> d) -> f a -> f b -> f c -> f d
-liftA3 f a b c = f <$> a <*> b <*> c
 
 -------------------------------------------------------------------------------
 -- Instances
 
 instance Applicative [] where
+    
+    {-# INLINE pure #-}
+    pure = return
+
+    {-# INLINE (<*>) #-}
     (<*>) = M.ap
     
 instance Applicative V.Vector where
+    {-# INLINE pure #-}
+    pure = return
+    
     {-# INLINE (<*>) #-}
     (<*>) = M.ap
   
